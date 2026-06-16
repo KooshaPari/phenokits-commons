@@ -476,3 +476,20 @@ class TestPhenotypeKitPackage:
             assert callable(get_logger)
         except ImportError as e:
             pytest.skip(f"Public API import failed: {e}")
+
+
+class TestPhenotypeId:
+    """Tests for in-repo polyglot phenotype-id Python implementation."""
+
+    def test_generate_uuid_is_valid(self) -> None:
+        from phenotype_id import Generator
+
+        value = Generator.generate_uuid()
+        assert Generator.is_valid_uuid(value)
+
+    def test_prefixed_ids(self) -> None:
+        from phenotype_id import Generator
+
+        assert Generator.generate_request_id().startswith("req-")
+        assert Generator.generate_trace_id().startswith("trace-")
+        assert Generator.generate_correlation_id().startswith("corr-")
