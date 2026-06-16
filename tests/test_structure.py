@@ -112,7 +112,12 @@ class TestCoreConfiguration:
 
 
 class TestHexaKitSubmodule:
-    """Test HexaKit submodule structure."""
+    """Test HexaKit submodule structure (optional until ``git submodule update --init``)."""
+
+    pytestmark = pytest.mark.skipif(
+        not (Path(__file__).parent.parent / "HexaKit").exists(),
+        reason="HexaKit submodule not initialized; run: git submodule update --init",
+    )
 
     def test_hexakit_exists(self, repo_root: Path) -> None:
         """Verify HexaKit directory exists."""
@@ -147,21 +152,38 @@ class TestPythonLibraries:
         pyproject_files = list(python_libs_dir.rglob("pyproject.toml"))
         assert len(pyproject_files) > 0, "No pyproject.toml files found in libs/python/"
 
+    def test_phenotype_id_exists(self, python_libs_dir: Path) -> None:
+        """Verify in-repo polyglot phenotype-id Python package exists."""
+        kit = python_libs_dir / "phenotype-id"
+        assert kit.exists(), "phenotype-id not found"
+        src = kit / "src" / "phenotype_id" / "id.py"
+        assert src.exists(), "phenotype-id source not found"
+
+    @pytest.mark.skipif(
+        not (Path(__file__).parent.parent / "libs" / "python" / "phenotype-py-kit").exists(),
+        reason="phenotype-py-kit absorbed into phenotype-python-sdk (see libs/python/README.md)",
+    )
     def test_phenotype_py_kit_exists(self, python_libs_dir: Path) -> None:
-        """Verify phenotype-py-kit library exists."""
+        """Verify phenotype-py-kit library exists (optional vendored checkout)."""
         kit = python_libs_dir / "phenotype-py-kit"
         assert kit.exists(), "phenotype-py-kit not found"
-
-        # Check for source files
         src_dir = kit / "src" / "phenotype_kit"
         assert src_dir.exists(), "phenotype-py-kit source not found"
 
+    @pytest.mark.skipif(
+        not (Path(__file__).parent.parent / "libs" / "python" / "phenotype-logging").exists(),
+        reason="phenotype-logging absorbed into phenotype-python-sdk",
+    )
     def test_phenotype_logging_exists(self, python_libs_dir: Path) -> None:
-        """Verify phenotype-logging library exists."""
+        """Verify phenotype-logging library exists (optional vendored checkout)."""
         kit = python_libs_dir / "phenotype-logging"
         assert kit.exists(), "phenotype-logging not found"
 
+    @pytest.mark.skipif(
+        not (Path(__file__).parent.parent / "libs" / "python" / "pheno-cli-kit").exists(),
+        reason="pheno-cli-kit absorbed into phenotype-python-sdk",
+    )
     def test_pheno_cli_kit_exists(self, python_libs_dir: Path) -> None:
-        """Verify pheno-cli-kit library exists."""
+        """Verify pheno-cli-kit library exists (optional vendored checkout)."""
         kit = python_libs_dir / "pheno-cli-kit"
         assert kit.exists(), "pheno-cli-kit not found"
