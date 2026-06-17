@@ -2,6 +2,19 @@
 
 Architecture decisions, policies, and organizational standards.
 
+## Fleet bootstrap (canonical)
+
+New repos copy governance defaults from **[GOVERNANCE-TEMPLATE-FLEET-DEFAULTS.md](GOVERNANCE-TEMPLATE-FLEET-DEFAULTS.md)** —
+not from archived `PhenoProc` or `PhenoKits`.
+
+| Path | Role |
+|------|------|
+| `phenoproc-templates/` | CI workflows, Rust integration scaffolds, `AGENTS.md.template` |
+| `phenoproc-configs/` | Per-language lint/format/supply-chain configs |
+| `standards/` | Language coding standards |
+
+Boundary disposition: [`docs/boundary/DISPOSITION.md`](../docs/boundary/DISPOSITION.md)
+
 ## Purpose
 Document decisions, standards, and RFCs for organizational alignment.
 
