@@ -1,56 +1,12 @@
-# Libs
+# Libraries
 
-Reusable code packages providing functionality across projects.
+Runtime libraries were removed from `phenokits-commons` on 2026-06-20 to keep this repository scoped to governance, templates, policies, docs, and shared artifact patterns.
 
-## Purpose
-Share code, enforce consistency, and reduce duplication.
+Absorbed homes:
 
-## Mutability
-Locked - Import and use, extend for customization (with versioning awareness).
+- Go libs: `KooshaPari/phenotype-go-sdk` PR #21
+- Python `phenokit-config-kit`: `KooshaPari/phenotype-python-sdk` PR #28
+- Python libs already equivalent in `KooshaPari/phenotype-python-sdk`
+- TypeScript libs: preserved in `KooshaPari/phenotype-registry` under `docs/absorption/PhenoKits/typescript-preservation/`
 
-## Structure by Language
-```
-libs/
-├── rust/           # Canonical implementations
-├── python/         # Python bindings
-├── typescript/      # TypeScript bindings
-└── go/             # Go bindings
-```
-
-## Distribution
-| Language | Registry | Package |
-|----------|----------|---------|
-| Rust | crates.io | `phenotype-*` |
-| Python | PyPI | `pheno-*` |
-| TypeScript | npm | `@phenotype/*` |
-| Go | pkg.go.dev | `github.com/phenotype/*` |
-
-## Usage
-```rust
-// Rust
-use phenotype_core::{Config, Error};
-
-#[derive(Debug, Config)]
-struct MyConfig {
-    #[config(default = "localhost")]
-    host: String,
-    port: u16,
-}
-```
-
-```python
-# Python
-from pheno_core import Config
-
-@dataclass
-class MyConfig(Config):
-    host: str = "localhost"
-    port: int
-```
-
-## Agent Pattern
-Agents import libs to implement features. Breaking changes require major version bump.
-
-## Related
-- [templates/](../templates/) - Templates that include libs
-- [schemas/types/](../schemas/types/) - Type definitions
+Do not add runtime package implementations here. Use a tight SDK/package repo instead.
