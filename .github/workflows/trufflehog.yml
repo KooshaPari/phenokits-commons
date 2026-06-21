@@ -17,10 +17,10 @@ jobs:
     name: TruffleHog OSS (verified-only)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4 # v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
       - name: TruffleHog OSS
-        uses: trufflesecurity/trufflehog@b32841520c47f1bdf1f6f4772bac76afe07a9e92 # v-latest
+        uses: trufflesecurity/trufflehog@9b6b5326bfe25dbd856eccc8a8275eb5dea7bd52 # main
         with:
           extra_args: --only-verified
