@@ -52,5 +52,5 @@ jobs:
             echo "::notice::No go.mod — skipping govulncheck (forward-compat guard)."
             exit 0
           fi
-          go install golang.org/x/vuln/cmd/govulncheck@v1.1.4
-          govulncheck ./...
+          echo "::error::go.mod detected; add a pinned govulncheck binary/install path before enabling this gate."
+          exit 1
