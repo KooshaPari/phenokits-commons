@@ -671,16 +671,14 @@ MIT — see [LICENSE](./LICENSE).
 
 # phenotype-bus
 
-[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
-[![CI](https://img.shields.io/github/actions/workflow/status/KooshaPari/phenotype-bus/ci.yml?branch=main)](https://github.com/KooshaPari/phenotype-bus/actions)
-[![Rust](https://img.shields.io/badge/rust-1.75%2B-orange?logo=rust)](https://www.rust-lang.org/)
-[![AI Slop Inside](https://sladge.net/badge.svg)](https://sladge.net)
-
-Generic, async pub/sub event bus for cross-collection communication in Phenotype.
-
 ## Overview
 
-`phenotype-bus` provides a strongly-typed, tokio-based event bus that enables loose coupling between Phenotype named collections:
+`phenotype-bus` is archived. The live absorb target is
+[`phenoEvents`](https://github.com/KooshaPari/phenoEvents), which carries the
+EventBus port and the lifted in-memory bus adapter.
+
+Historical `phenotype-bus` provided a strongly-typed, tokio-based event bus for
+loose coupling between Phenotype named collections:
 
 - **Sidekick** — agent dispatch & messaging
 - **Eidolon** — device automation (desktop, mobile, sandbox)
@@ -689,6 +687,9 @@ Generic, async pub/sub event bus for cross-collection communication in Phenotype
 - **Paginary** — pagination & pagination metadata
 
 ## Usage
+
+Use `phenoEvents` for new code. The example below is retained only to describe
+the archived API surface that was absorbed.
 
 ```rust
 use phenotype_bus::{Bus, Event};
@@ -777,15 +778,17 @@ The bus is backed by `tokio::sync::broadcast`. That means each subscriber has it
 Events are not persisted. If you call `publish()` before any subscriber exists, the event is dropped and will not be replayed to future subscribers.
 
 - Late subscribers only see events published after they subscribe.
-- If you need history or replay, use a different transport or add persistence on top of `phenotype-bus`.
+- If you need history or replay, use `phenoEvents` or add persistence in the
+  target event domain.
 
 ## Cross-Collection Integration
 
-Each collection can emit and subscribe to events by adding a dependency on `phenotype-bus`:
+New collection integrations should depend on the event-domain owner, not on
+archived `phenotype-bus`:
 
 ```toml
 [dependencies]
-phenotype-bus = { path = "../../phenotype-bus" }
+pheno-events = { git = "https://github.com/KooshaPari/phenoEvents", branch = "main" }
 ```
 
 Events are identified by type, so no event registry is needed. Collections are loosely coupled:
@@ -797,7 +800,7 @@ Events are identified by type, so no event registry is needed. Collections are l
 ## Project Structure
 
 ```
-phenotype-bus/
+phenotype-bus/ (archived source)
 ├── Cargo.toml                    # Rust crate metadata
 ├── src/
 │   ├── lib.rs                   # Bus implementation + Event trait
@@ -845,11 +848,11 @@ phenotype-bus/
 
 ## Related Phenotype Projects
 
-- **Sidekick** — Agent dispatch system; uses phenotype-bus for event routing
-- **Eidolon** — Device automation; publishes automation events to bus
-- **Observably** — Tracing platform; subscribes to event stream for instrumentation
-- **Stashly** — State/event caching; uses event sourcing with bus
-- **Paginary** — Pagination metadata; publishes pagination events
+- **Sidekick** — Agent dispatch system; historical `phenotype-bus` consumer
+- **Eidolon** — Device automation; historical automation event publisher
+- **Observably** — Tracing platform; stale CI dependency removed in PhenoObservability `37d1ee0`
+- **Stashly** — State/event caching; event sourcing belongs in the event/resilience owners
+- **Paginary** — Pagination metadata; no new dependency on archived `phenotype-bus`
 
 ## Quick Examples
 
