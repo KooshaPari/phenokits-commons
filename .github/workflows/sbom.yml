@@ -1,0 +1,31 @@
+name: sbom
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  sbom:
+    name: CycloneDX SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: dtolnay/rust-toolchain@29eef336d9b2848a0b548edc03f92a220660cdb8 # stable
+      - name: Install cargo-cyclonedx
+        run: cargo install cargo-cyclonedx --locked
+      - name: Generate SBOM
+        run: cargo cyclonedx --format json --override-filename sbom.json
+      - name: Reject GPL/AGPL additions
+        run: |
+          if jq -r '.components[].licenses[]?.license.id' sbom.json | grep -E 'GPL|AGPL'; then
+            echo "GPL/AGPL license detected — failing per fleet policy."
+            exit 1
+          fi
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.json
