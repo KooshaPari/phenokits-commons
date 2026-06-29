@@ -2,7 +2,7 @@
 import json
 from datetime import datetime
 from uuid import UUID
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, String, DateTime, text
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
@@ -69,7 +69,8 @@ class PostgresRepository(Repository):
         """List entities with pagination."""
         offset = (page - 1) * page_size
         result = await self._session.execute(
-            f"SELECT * FROM entities ORDER BY created_at DESC LIMIT {page_size} OFFSET {offset}"
+            text("SELECT * FROM entities ORDER BY created_at DESC LIMIT :limit OFFSET :offset"),
+            {"limit": page_size, "offset": offset},
         )
         rows = result.fetchall()
         return [

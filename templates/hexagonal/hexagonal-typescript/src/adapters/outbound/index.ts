@@ -48,11 +48,15 @@ export class InMemoryOrderRepository implements OrderRepositoryPort {
  * For production, use Kafka, RabbitMQ, or similar.
  */
 export class InMemoryEventBus implements EventBusPort {
-  private handlers: Map<string, Array<(event: DomainEvent) => Promise<void>>> = new Map();
+  private _handlers: Map<string, Array<(event: DomainEvent) => Promise<void>>> = new Map();
 
   async publish(event: DomainEvent): Promise<void> {
-    const handlers = this.handlers.get(event.eventType) || [];
-    for (const handler of handlers) {
+    // Snapshot handlers to avoid race between publish and concurrent subscribe
+    const handlers = this._handlers.get(event.eventType);
+    if (!handlers) return;
+    // Iterate over a snapshot copy for safe concurrent access
+    const snapshot = [...handlers];
+    for (const handler of snapshot) {
       await handler(event);
     }
   }
@@ -65,13 +69,13 @@ export class InMemoryEventBus implements EventBusPort {
     eventType: string,
     handler: (event: T) => Promise<void>
   ): Promise<void> {
-    const handlers = this.handlers.get(eventType) || [];
-    handlers.push(handler as (event: DomainEvent) => Promise<void>);
-    this.handlers.set(eventType, handlers);
+    // Copy-on-write: create a new array to avoid race with concurrent publish iteration
+    const existing = this._handlers.get(eventType) || [];
+    this._handlers.set(eventType, [...existing, handler as (event: DomainEvent) => Promise<void>]);
   }
 
   clear(): void {
-    this.handlers.clear();
+    this._handlers.clear();
   }
 }
 
@@ -83,6 +87,11 @@ export class InMemoryEventBus implements EventBusPort {
  */
 export class InMemoryCache implements CachePort {
   private cache: Map<string, { value: unknown; expiresAt?: number }> = new Map();
+  private readonly maxEntries: number;
+
+  constructor(maxEntries = 1000) {
+    this.maxEntries = maxEntries;
+  }
 
   async get<T>(key: string): Promise<T | null> {
     const entry = this.cache.get(key);
@@ -95,6 +104,25 @@ export class InMemoryCache implements CachePort {
   }
 
   async set<T>(key: string, value: T, ttlSeconds?: number): Promise<void> {
+    if (!this.cache.has(key) && this.cache.size >= this.maxEntries) {
+      // Evict expired entries first, then oldest non-expired entry
+      const now = Date.now();
+      let oldestKey: string | null = null;
+      let oldestTime = Infinity;
+      for (const [k, v] of this.cache) {
+        if (v.expiresAt && v.expiresAt < now) {
+          this.cache.delete(k);
+          if (this.cache.size < this.maxEntries) break;
+        } else if (v.expiresAt && v.expiresAt < oldestTime) {
+          oldestKey = k;
+          oldestTime = v.expiresAt;
+        }
+      }
+      // If still over limit after expired eviction, evict the entry closest to expiry
+      if (this.cache.size >= this.maxEntries && oldestKey !== null) {
+        this.cache.delete(oldestKey);
+      }
+    }
     const expiresAt = ttlSeconds ? Date.now() + ttlSeconds * 1000 : undefined;
     this.cache.set(key, { value, expiresAt });
   }
