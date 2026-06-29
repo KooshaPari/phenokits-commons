@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-import tomli
+import sys
+if sys.version_info >= (3, 11):
+    import tomllib as tomli
+else:
+    import tomli  # type: ignore[no-redef]
 from pathlib import Path
 
 import pytest

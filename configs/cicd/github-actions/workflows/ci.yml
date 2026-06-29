@@ -12,6 +12,12 @@ on:
   schedule:
     - cron: "0 7 * * *"  # Weekly dry-run for audit purposes only
 
+# NOTE: For production use, pin every action to a specific SHA commit
+# instead of a version tag. Example:
+#   uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+# Replace ubuntu-latest with a pinned runner version:
+#   runs-on: ubuntu-24.04
+
 permissions:
   contents: read
 
