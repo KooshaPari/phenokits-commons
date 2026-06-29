@@ -1,3 +1,9 @@
+# ─── SECURITY NOTE: SHA-pin GitHub Actions ──────────────────────────
+# This workflow is a TEMPLATE. Before using in a live repo, replace
+# every `@v<tag>` with a pinned SHA commit + comment, and replace
+# `ubuntu-latest` with a fixed runner (e.g., `ubuntu-24.04`).
+# ═══════════════════════════════════════════════════════════════════
+
 name: Release
 
 on:

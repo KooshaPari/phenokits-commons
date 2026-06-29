@@ -1,3 +1,10 @@
+# ─── SECURITY NOTE: SHA-pin GitHub Actions ──────────────────────────
+# For production security, pin every action to a specific commit SHA
+# with a version comment. Example:
+#   uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+# Replace `ubuntu-latest` with a fixed runner (e.g., `ubuntu-24.04`).
+# ═══════════════════════════════════════════════════════════════════
+
 name: Security Scan
 
 on:
@@ -61,7 +68,7 @@ jobs:
           upload-to-sarif: true
 
       - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.29.0
         with:
           scan-type: 'fs'
           scan-ref: '.'

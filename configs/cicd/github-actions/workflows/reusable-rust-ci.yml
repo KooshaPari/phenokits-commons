@@ -7,6 +7,17 @@
 #         crate-name: my-crate
 #         rust-version: stable
 
+# ─── SECURITY NOTE: SHA-pin GitHub Actions ──────────────────────────
+# This is a TEMPLATE file. When consuming in a live repository, replace
+# every `@v<tag>` with a pinned SHA commit + comment:
+#   uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+# Replace `ubuntu-latest` with a fixed runner version:
+#   runs-on: ubuntu-24.04
+#
+# The reusable workflow already accepts `runs-on` as an input parameter
+# so consumers can pin their runner version without editing this file.
+# ─────────────────────────────────────────────────────────────────────
+
 name: Reusable Rust CI
 
 on:

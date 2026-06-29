@@ -1,3 +1,11 @@
+# ─── SECURITY NOTE: SHA-pin GitHub Actions ──────────────────────────
+# This is a TEMPLATE file. When consuming in a live repository, replace
+# every `@v<tag>` with a pinned SHA commit + comment.
+# Replace `ubuntu-latest` with a fixed runner version like `ubuntu-24.04`.
+# The reusable workflow already accepts `runs-on` via its caller;
+# consumers should pin the runner in their call-site.
+# ─────────────────────────────────────────────────────────────────────
+
 name: Reusable Python CI
 
 on:
