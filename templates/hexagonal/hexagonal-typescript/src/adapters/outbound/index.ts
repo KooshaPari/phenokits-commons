@@ -42,36 +42,98 @@ export class InMemoryOrderRepository implements OrderRepositoryPort {
 }
 
 /**
+ * Simple promise-based mutex for concurrency control.
+ *
+ * Although JavaScript is single-threaded, async operations can interleave.
+ * This mutex serializes access to shared mutable state like the handler map
+ * during publish/subscribe/clear operations.
+ */
+class Mutex {
+  private locked = false;
+  private queue: Array<() => void> = [];
+
+  async acquire(): Promise<void> {
+    if (!this.locked) {
+      this.locked = true;
+      return;
+    }
+    return new Promise((resolve) => {
+      this.queue.push(() => {
+        this.locked = true;
+        resolve();
+      });
+    });
+  }
+
+  release(): void {
+    if (this.queue.length > 0) {
+      const next = this.queue.shift()!;
+      next();
+    } else {
+      this.locked = false;
+    }
+  }
+
+  /**
+   * Run a critical section, acquiring the lock before and releasing after.
+   */
+  async run<T>(fn: () => Promise<T>): Promise<T> {
+    await this.acquire();
+    try {
+      return await fn();
+    } finally {
+      this.release();
+    }
+  }
+}
+
+/**
  * In-Memory Event Bus - Simple in-memory implementation.
  *
  * This is a development/fallback implementation.
  * For production, use Kafka, RabbitMQ, or similar.
+ *
+ * Concurrency note: `publish` snapshots the handler list to avoid
+ * mutation-during-iteration races, and mutation operations
+ * (subscribe, clear) are serialized through a mutex to prevent
+ * interleaving with concurrent publish calls (e.g. via publishBatch).
  */
 export class InMemoryEventBus implements EventBusPort {
   private handlers: Map<string, Array<(event: DomainEvent) => Promise<void>>> = new Map();
+  private mutex = new Mutex();
 
   async publish(event: DomainEvent): Promise<void> {
-    const handlers = this.handlers.get(event.eventType) || [];
+    // Snapshot handlers to avoid mutation-during-iteration races
+    const handlers = await this.mutex.run(async () => {
+      return (this.handlers.get(event.eventType) || []).slice();
+    });
     for (const handler of handlers) {
       await handler(event);
     }
   }
 
   async publishBatch(events: DomainEvent[]): Promise<void> {
-    await Promise.all(events.map((e) => this.publish(e)));
+    // Serialize to avoid interleaving concurrent publishes
+    for (const event of events) {
+      await this.publish(event);
+    }
   }
 
   async subscribe<T extends DomainEvent>(
     eventType: string,
     handler: (event: T) => Promise<void>
   ): Promise<void> {
-    const handlers = this.handlers.get(eventType) || [];
-    handlers.push(handler as (event: DomainEvent) => Promise<void>);
-    this.handlers.set(eventType, handlers);
+    await this.mutex.run(async () => {
+      const handlers = this.handlers.get(eventType) || [];
+      handlers.push(handler as (event: DomainEvent) => Promise<void>);
+      this.handlers.set(eventType, handlers);
+    });
   }
 
-  clear(): void {
-    this.handlers.clear();
+  async clear(): Promise<void> {
+    await this.mutex.run(async () => {
+      this.handlers.clear();
+    });
   }
 }
 
